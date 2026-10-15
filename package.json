@@ -1,0 +1,14 @@
+{
+  "name": "cqjzc-campus-shooter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Campus 30v30 and zombie extraction shooter",
+  "scripts": {
+    "start": "node shooter/server.cjs",
+    "test": "node --test shooter/test/*.test.cjs",
+    "verify": "node tools/verify.js",
+    "acceptance": "node shooter/test/browser.acceptance.cjs"
+  },
+  "dependencies": {"three": "0.170.0", "ws": "8.18.3", "yuka": "^0.7.8"},
+  "devDependencies": {"playwright": "1.56.1"}
+}

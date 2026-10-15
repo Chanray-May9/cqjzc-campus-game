@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>东站行动 · 校园战区</title>
+<link rel="stylesheet" href="/shooter/ui.css"><script type="importmap">{"imports":{"three":"/modules/three/build/three.module.js","three/addons/":"/modules/three/examples/jsm/"}}</script></head>
+<body><canvas id="scene"></canvas>
+<div id="loading"><div class="small-label">EAST STATION / TACTICAL OPERATIONS</div><h1>东站行动</h1><div class="load-track"><i id="loadbar"></i></div><p id="loadtext">连接战区…</p></div>
+<main id="lobby" class="hidden">
+ <header class="lobby-top"><label class="lobby-profile"><svg viewBox="0 0 24 24"><path d="M7 8a5 5 0 1 0 10 0 5 5 0 0 0-10 0M3 22v-3c0-4 18-4 18 0v3"/></svg><input id="callsign" maxlength="16" value="队员" autocomplete="off" aria-label="玩家呼号"></label><nav><button class="nav-active" id="nav-combat"><svg viewBox="0 0 24 24"><path d="M3 12h18M12 3v18M7 5l-2 2M17 5l2 2M7 19l-2-2M17 19l2-2"/></svg>作战</button><button id="nav-avatar"><svg viewBox="0 0 24 24"><path d="M12 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>角色</button><button id="nav-armory"><svg viewBox="0 0 24 24"><path d="M2 8h16v5H8l-2 7H3l2-7H2zM18 10h4M10 13v5h4v-5"/></svg>武器</button><button id="nav-lan"><svg viewBox="0 0 24 24"><path d="M4 7h16M8 3h8v5H8zM3 16h5v5H3zM16 16h5v5h-5zM5 16v-4h14v4M12 8v4"/></svg>联机</button><button id="open-settings"><svg viewBox="0 0 24 24"><path d="M10 2h4l1 4 4 1 3 5-3 5-4 1-1 4h-4l-1-4-4-1-3-5 3-5 4-1z"/><circle cx="12" cy="12" r="3"/></svg>设置</button></nav><span id="connection">服务器连接中</span></header>
+ <div class="lobby-heading"><span>重庆建筑工程职业学院 · 东站校区</span><h1>东站行动</h1></div>
+ <section class="deployment">
+  <div class="modes"><button class="mode active" data-mode="tdm"><span>01</span><b>团队竞技</b><small>30 对 30 · 150 次击杀</small></button><button class="mode" data-mode="survival"><span>02</span><b>丧尸生存</b><small>坚守 10 分钟 · 直升机撤离</small></button></div>
+  <p id="brief">与队友协同作战。率先获得 150 次击杀的队伍赢得本局。</p>
+  <div id="teams" class="teams"><button class="selected" data-team="blue"><i class="blue"></i>蓝队</button><button data-team="red"><i class="red"></i>红队</button></div>
+  <p id="teamnote" class="hint">队友与敌人外观各异，靠头顶标记分辨敌我。</p>
+  <button id="deploy" class="deploy" disabled><small>ENTER COMBAT</small>开始行动 <span>››</span></button>
+  <div id="lobby-error" role="alert"></div>
+  <div class="lan"><span>局域网联机</span><button id="copy-address">复制房间地址</button><small id="lan-address">同一网络的玩家通过房间地址加入</small></div>
+ </section>
+ <footer class="lobby-bottom"><span>WASD 移动 · 鼠标射击 · 1/2/3 切枪 · F 登机</span><a href="/explore" target="_blank">校园漫游</a></footer>
+</main>
+<div id="hud" class="hidden">
+ <div id="scorebar"><span class="team-blue"><b id="blue-score">0</b> <span id="blue-label">蓝队</span></span><div><strong id="mode-title">团队竞技</strong><small id="round-clock">00:00 / 150</small></div><span class="team-red"><span id="red-label">红队</span> <b id="red-score">0</b></span></div>
+ <div class="hud-top-left"><span class="small-label">EAST STATION</span><div id="objective">消灭敌方队员</div><div id="medical-status"></div></div>
+ <div id="killfeed"></div><div id="notice"></div>
+ <div id="reticle"><i></i><i></i><i></i><i></i><b></b></div><div id="hitmarker">×</div><div id="damage-overlay"></div>
+ <div id="interact"></div>
+ <div class="hud-left-bottom"><canvas id="radar" width="360" height="360"></canvas><div class="health"><span id="hp">100</span><small>生命</small><div><i id="healthbar"></i></div></div><div id="player-name">队员</div></div>
+ <div class="hud-right-bottom"><div id="weapon-name">突击步枪 / 全自动</div><div class="ammo"><b id="ammo">30</b><span>/ <i id="reserve">240</i></span></div><div id="reload-status"></div><div id="telemetry">0 ms · 0 FPS</div></div>
+ <div id="controls">SHIFT 奔跑　CTRL 蹲伏　R 换弹　1/2/3 切枪　右键 瞄准　TAB 战绩　ESC 菜单</div>
+</div>
+<div id="touch-controls" class="hidden"><div id="move-zone"><div id="joystick"><i></i></div></div><button id="touch-fire-left" aria-label="左侧射击">开火</button><button id="touch-fire" aria-label="射击并拖动瞄准">开火</button><button id="touch-aim" aria-label="瞄准">瞄准</button><button id="touch-jump" aria-label="跳跃">跳跃</button><button id="touch-crouch" aria-label="蹲伏">蹲伏</button><button id="touch-reload" aria-label="换弹">换弹</button><button id="touch-extract" class="hidden">登上直升机</button><div id="touch-weapons"><button data-weapon="rifle">步枪</button><button data-weapon="shotgun">霰弹</button><button data-weapon="pistol">手枪</button></div><button id="touch-menu" aria-label="作战菜单">☰</button></div>
+<div id="armory" class="modal hidden"><section class="wide"><h2>武器</h2><div id="armory-list" class="armory-list"></div><p class="hint">伤害随距离衰减，超出射程的子弹打不到人。战斗中用数字键或触屏武器栏切换。</p><button id="armory-close" class="deploy">返回</button></section></div>
+<div id="avatar-modal" class="modal hidden"><section class="wide"><h2>作战角色</h2><p class="hint">大厅里看到的就是你在战场上的样子。队友与敌人会在本局随机分配到不同角色。</p><div id="avatar-grid" class="avatar-grid"></div><button id="avatar-close" class="deploy">返回</button></section></div>
+<div id="lan-dialog" class="modal hidden"><section><h2>局域网联机</h2><p id="lan-room-state">把你电脑上的房间地址发给好友，同一 Wi-Fi 下直接加入。</p><label>你的房间地址<input id="lan-room-address" readonly></label><button id="lan-copy" class="deploy">复制房间地址</button><label>加入好友的房间<input id="join-room-address" placeholder="http://192.168.1.20:8124" autocomplete="off"></label><button id="lan-join">进入该房间</button><p id="lan-error" role="alert"></p><button id="lan-close">返回大厅</button></section></div>
+<div id="result" class="hidden"><section><div class="small-label" id="result-label">ACTION REPORT</div><h1 id="result-title">行动结束</h1><p id="result-detail"></p><div id="result-stats"></div><button id="result-leave" class="deploy">返回大厅</button><button id="spectate" class="quiet">继续观察战区</button></section></div>
+<div id="pause" class="modal hidden"><section><div class="small-label">TACTICAL MENU</div><h2>作战菜单</h2><button id="resume" class="deploy">继续作战</button><button id="pause-settings">画面与声音</button><button id="leave">返回大厅</button></section></div>
+<div id="settings" class="modal hidden"><section><div class="small-label">SETTINGS</div><h2>画面与声音</h2><label>画面质量<select id="quality"><option value="medium">标准</option><option value="high">高</option><option value="low">流畅</option></select></label><label>声音<input type="range" id="volume" min="0" max="1" step=".05" value=".7"></label><label>鼠标灵敏度<input type="range" id="sensitivity" min=".0005" max=".004" step=".0001" value=".0018"></label><label>导入角色数量<select id="avatar-share"><option value="100">全部</option><option value="75">约七成</option><option value="60">约六成（推荐）</option><option value="30">约三成</option><option value="0">只用内置士兵</option></select></label><button id="settings-close" class="deploy">完成</button><p class="hint">导入的二次元角色每个材质一次绘制，人数越多帧率越低；选「全部」明显更吃显卡。</p></section></div>
+<div id="scoreboard" class="modal hidden"><section><h2>作战战绩</h2><div id="scoreboard-rows"></div></section></div>
+<script type="module" src="/shooter/client.js"></script></body></html>

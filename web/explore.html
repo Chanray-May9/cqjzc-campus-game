@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>重庆建筑工程职业学院 · 东站校区 — 自由漫游</title>
+<style>
+  :root{
+    --ink:#e9eef5; --dim:#93a3b8; --accent:#e6543a; --panel:rgba(11,16,24,.72);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#0a0f16;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;color:var(--ink)}
+  canvas#gl{display:block;width:100%;height:100%}
+
+  /* ---------------- loading ---------------- */
+  #boot{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:18px;
+    background:radial-gradient(120% 90% at 50% 0%,#16243a 0%,#080c13 70%);transition:opacity .6s}
+  #boot h1{margin:0;font-size:26px;letter-spacing:.14em;font-weight:600}
+  #boot h2{margin:0;font-size:13px;letter-spacing:.32em;color:var(--dim);font-weight:400}
+  #bar{width:min(420px,72vw);height:4px;border-radius:3px;background:#1e2836;overflow:hidden}
+  #barfill{height:100%;width:0%;background:linear-gradient(90deg,#e6543a,#f0a13c);transition:width .25s}
+  #bootmsg{font-size:12px;color:var(--dim);letter-spacing:.1em;min-height:1.2em}
+  #boot.ready{opacity:0;pointer-events:none}
+  #startbtn{display:none;padding:13px 40px;border:0;border-radius:2px;cursor:pointer;
+    background:var(--accent);color:#fff;font-size:15px;letter-spacing:.22em;
+    font-family:inherit;box-shadow:0 8px 30px rgba(230,84,58,.35)}
+  #startbtn:hover{background:#f06448}
+  #boot.ready #startbtn{display:block}
+
+  /* ---------------- hud ---------------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:20;opacity:0;transition:opacity .5s}
+  #hud.on{opacity:1}
+
+  #mapwrap{position:absolute;left:16px;bottom:16px;width:186px;height:186px;
+    border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.22);
+    box-shadow:0 10px 34px rgba(0,0,0,.55)}
+  #minimap{width:100%;height:100%;display:block;background:#0d1620}
+  #compass{position:absolute;left:16px;bottom:210px;width:186px;text-align:center;
+    font-size:11px;letter-spacing:.3em;color:var(--dim)}
+
+  #stats{position:absolute;right:16px;bottom:16px;text-align:right}
+  #speed{font-size:46px;font-weight:200;line-height:.95;letter-spacing:.02em;
+    text-shadow:0 3px 16px rgba(0,0,0,.7)}
+  #speed em{font-style:normal}
+  #speed span{font-size:13px;letter-spacing:.22em;color:var(--dim);margin-left:6px}
+  #gear{font-size:11px;letter-spacing:.3em;color:var(--dim);margin-top:2px}
+
+  #place{position:absolute;left:16px;top:14px;font-size:13px;letter-spacing:.16em;
+    padding:7px 14px;background:var(--panel);border-left:2px solid var(--accent);
+    border-radius:2px;backdrop-filter:blur(6px)}
+  #clock{position:absolute;right:16px;top:14px;font-size:12px;letter-spacing:.2em;
+    padding:7px 14px;background:var(--panel);border-radius:2px;color:var(--dim);
+    backdrop-filter:blur(6px)}
+  #prompt{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);
+    font-size:14px;letter-spacing:.16em;padding:9px 20px;background:var(--panel);
+    border:1px solid rgba(255,255,255,.16);border-radius:3px;display:none;
+    backdrop-filter:blur(6px)}
+  #prompt b{color:#ffd479;font-weight:600}
+  #toast{position:absolute;left:50%;top:20%;transform:translateX(-50%);
+    font-size:14px;letter-spacing:.14em;padding:10px 22px;background:var(--panel);
+    border-radius:3px;opacity:0;transition:opacity .35s;backdrop-filter:blur(6px)}
+  #help{position:absolute;right:16px;top:56px;font-size:11.5px;line-height:1.85;
+    color:var(--dim);background:var(--panel);padding:12px 16px;border-radius:3px;
+    backdrop-filter:blur(6px);letter-spacing:.05em;max-width:230px}
+  #help b{color:var(--ink);font-weight:600;display:inline-block;min-width:64px}
+  #help.min{opacity:.28}
+  #cursor{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;
+    display:none}
+  #cursor:before,#cursor:after{content:"";position:absolute;background:rgba(255,255,255,.75)}
+  #cursor:before{left:7px;top:0;width:2px;height:16px}
+  #cursor:after{left:0;top:7px;width:16px;height:2px}
+  #vignette{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.42))}
+  #err{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;
+    background:#0a0f16;padding:40px;text-align:center;font-size:14px;line-height:1.9}
+  #err code{color:#ffd479;background:#161d28;padding:2px 7px;border-radius:3px}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<div id="hud">
+  <div id="vignette"></div>
+  <div id="place">东站校区</div>
+  <div id="clock">08:00</div>
+  <div id="compass">N</div>
+  <div id="mapwrap"><canvas id="minimap" width="372" height="372"></canvas></div>
+  <div id="stats">
+    <div id="speed"><em id="spd">0</em><span>km/h</span></div>
+    <div id="gear">步行</div>
+  </div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+  <div id="cursor"></div>
+  <div id="help">
+    <b>W A S D</b>移动<br>
+    <b>Shift</b>奔跑<br>
+    <b>Space</b>跳跃 / 手刹<br>
+    <b>F</b>上车 / 下车<br>
+    <b>C</b>切换视角<br>
+    <b>鼠标</b>环视 · 滚轮缩放<br>
+    <b>Esc</b>释放鼠标<br>
+    <b>N</b>切换昼夜<br>
+    <b>H</b>隐藏此面板
+  </div>
+</div>
+
+<div id="boot">
+  <h2>CHONGQING JIANZHU COLLEGE</h2>
+  <h1>重庆建筑工程职业学院 · 东站校区</h1>
+  <div id="bar"><div id="barfill"></div></div>
+  <div id="bootmsg">正在准备场景…</div>
+  <button id="startbtn">进 入 校 园</button>
+</div>
+
+<div id="err"></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="js/terrain.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
